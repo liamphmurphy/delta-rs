@@ -1432,9 +1432,9 @@ class DeltaTable:
             commit_properties,
             post_commithook_properties,
         )
-        deserialized = json.loads(metrics)
-        deserialized[FSCK_METRICS_FILES_REMOVED_LABEL] = json.loads(deserialized["files_removed"])
-        return deserialized
+        deserialized_metrics = json.loads(metrics)
+        deserialized_metrics[FSCK_METRICS_FILES_REMOVED_LABEL] = json.loads(deserialized_metrics[FSCK_METRICS_FILES_REMOVED_LABEL])
+        return deserialized_metrics
 
     def transaction_versions(self) -> Dict[str, Transaction]:
         return self._table.transaction_versions()
