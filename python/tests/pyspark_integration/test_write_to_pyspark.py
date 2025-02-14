@@ -1,6 +1,7 @@
 """Tests that deltalake(delta-rs) can write to tables written by PySpark."""
 
 import pathlib
+import os
 
 import pyarrow as pa
 import pytest
@@ -169,3 +170,32 @@ def test_spark_read_z_ordered_history(tmp_path: pathlib.Path):
     )
 
     assert latest_operation_metrics["operationMetrics"] is not None
+
+@pytest.mark.pyspark
+@pytest.mark.integration
+def test_spark_read_repair_run(tmp_path):
+    ids = ["1"] * 10
+    values = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+    id_array = pa.array(ids, type=pa.string())
+    value_array = pa.array(values, type=pa.int32())
+
+    pa_table = pa.Table.from_arrays([id_array, value_array], names=["id", "value"])
+    
+    write_deltalake(tmp_path, pa_table, mode="append")
+    write_deltalake(tmp_path, pa_table, mode="append")
+    dt = DeltaTable(tmp_path)
+    os.remove(dt.file_uris()[0])
+
+    dt.repair(dry_run=False)
+    spark = get_spark()
+
+    history_df = spark.sql(f"DESCRIBE HISTORY '{tmp_path}'")
+
+    latest_operation_metrics = (
+        history_df.orderBy(history_df.version.desc()).select("operationMetrics").first()
+    )
+
+    assert latest_operation_metrics["operationMetrics"] is not None
+
+

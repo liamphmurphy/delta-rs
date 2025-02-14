@@ -69,6 +69,8 @@ MAX_SUPPORTED_READER_VERSION = 3
 NOT_SUPPORTED_READER_VERSION = 2
 SUPPORTED_READER_FEATURES = {"timestampNtz"}
 
+FSCK_METRICS_FILES_REMOVED_LABEL = "files_removed"
+
 FilterLiteralType = Tuple[str, str, Any]
 FilterConjunctionType = List[FilterLiteralType]
 FilterDNFType = List[FilterConjunctionType]
@@ -1430,7 +1432,9 @@ class DeltaTable:
             commit_properties,
             post_commithook_properties,
         )
-        return json.loads(metrics)
+        deserialized = json.loads(metrics)
+        deserialized[FSCK_METRICS_FILES_REMOVED_LABEL] = json.loads(deserialized["files_removed"])
+        return deserialized
 
     def transaction_versions(self) -> Dict[str, Transaction]:
         return self._table.transaction_versions()

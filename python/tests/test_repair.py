@@ -32,3 +32,5 @@ def test_repair_wo_dry_run(tmp_path, sample_data):
     assert metrics["dry_run"] is False
     assert last_action["operation"] == "FSCK"
     assert last_action["userName"] == "John Doe"
+
+
